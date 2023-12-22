@@ -28,12 +28,37 @@ async function run() {
         await client.connect();
         // Send a ping to confirm a successful connection
 
-        const jobcollection = client.db('task').collection('jobTask');
+        const jobCollection = client.db('task').collection('jobTasks');
 
 
-        app.post('/jobTask', async (req, res) => {
+        app.post('/jobTasks', async (req, res) => {
+            const taskadd = req.body;
+            const data = {
+                title: taskadd.title,
+                description: taskadd.description,
+                date: taskadd.date,
+                priority: taskadd.priority,
+                status: 'todo',
+            };
+            const result = await jobCollection.insertOne(data);
+            res.send(result);
+        });
+
+        app.get('/jobTasks', async (req, res) => {
+            const result = await jobCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.patch('/jobTasks', async (req, res) => {
+            const id = req.query.id;
             const data = req.body;
-            const result = await jobcollection.insertOne(data);
+            const query = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: data.status,
+                },
+            };
+            const result = await jobCollection.updateOne(query, updatedDoc);
             res.send(result);
         });
 
